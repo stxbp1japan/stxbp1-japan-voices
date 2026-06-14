@@ -1124,18 +1124,20 @@
     params.append('community', document.getElementById('field-community')?.value  || '');
     params.append('message',   document.getElementById('field-message')?.value    || '');
 
-    // fetchのno-corsでGETリクエスト送信
-    try {
-      await fetch(GAS_URL + '?' + params.toString(), {
-        method: 'GET',
-        mode: 'no-cors',
-        redirect: 'follow'
-      });
-    } catch(err) {
-      console.error('送信エラー:', err);
-    } finally {
+    // XHRでGETリクエスト送信（fetchより確実）
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', GAS_URL + '?' + params.toString(), true);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        showThanks();
+      }
+    };
+    xhr.onerror = function() {
       showThanks();
-    }
+    };
+    xhr.send();
+    // フォールバック：8秒後に必ずサンクスページへ
+    setTimeout(showThanks, 8000);
   });
 
   function showThanks() {
