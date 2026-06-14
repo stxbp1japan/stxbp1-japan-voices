@@ -1110,31 +1110,25 @@
     submitBtn.disabled = true;
     submitBtn.textContent = '送信中…';
 
-    // FormDataで送信（no-corsで唯一確実に届く方法）
-    const fd = new FormData();
-    fd.append('name',      document.getElementById('field-name')?.value       || '');
-    fd.append('childName', document.getElementById('field-child-name')?.value || '');
-    fd.append('age',       document.getElementById('field-age')?.value        || '');
-    fd.append('gender',    document.querySelector('input[name="entry.2021935006"]:checked')?.value || '');
-    fd.append('child',     document.getElementById('field-child')?.value      || '');
-    fd.append('diagnosis', document.getElementById('field-diagnosis')?.value  || '');
-    fd.append('hardest',   document.getElementById('field-hardest')?.value    || '');
-    fd.append('growth',    document.getElementById('field-growth')?.value     || '');
-    fd.append('future',    document.getElementById('field-future')?.value     || '');
-    fd.append('community', document.getElementById('field-community')?.value  || '');
-    fd.append('message',   document.getElementById('field-message')?.value    || '');
+    // GETリクエストで送信（no-cors制限を回避）
+    const params = new URLSearchParams();
+    params.append('name',      document.getElementById('field-name')?.value       || '');
+    params.append('childName', document.getElementById('field-child-name')?.value || '');
+    params.append('age',       document.getElementById('field-age')?.value        || '');
+    params.append('gender',    document.querySelector('input[name="entry.2021935006"]:checked')?.value || '');
+    params.append('child',     document.getElementById('field-child')?.value      || '');
+    params.append('diagnosis', document.getElementById('field-diagnosis')?.value  || '');
+    params.append('hardest',   document.getElementById('field-hardest')?.value    || '');
+    params.append('growth',    document.getElementById('field-growth')?.value     || '');
+    params.append('future',    document.getElementById('field-future')?.value     || '');
+    params.append('community', document.getElementById('field-community')?.value  || '');
+    params.append('message',   document.getElementById('field-message')?.value    || '');
 
-    try {
-      await fetch(GAS_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: fd
-      });
-    } catch(err) {
-      console.error('送信エラー:', err);
-    } finally {
-      showThanks();
-    }
+    const img = new Image();
+    img.src = GAS_URL + '?' + params.toString();
+    img.onload = img.onerror = () => showThanks();
+    // フォールバック：3秒後に必ずサンクスページへ
+    setTimeout(showThanks, 3000);
   });
 
   function showThanks() {
