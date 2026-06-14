@@ -1124,20 +1124,20 @@
     params.append('community', document.getElementById('field-community')?.value  || '');
     params.append('message',   document.getElementById('field-message')?.value    || '');
 
-    // XHRでGETリクエスト送信（fetchより確実）
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', GAS_URL + '?' + params.toString(), true);
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === 4) {
-        showThanks();
-      }
-    };
-    xhr.onerror = function() {
+    // 隠しiframeでGETリクエスト送信（リダイレクト回避）
+    let gasIframe = document.getElementById('gas-iframe');
+    if (!gasIframe) {
+      gasIframe = document.createElement('iframe');
+      gasIframe.id = 'gas-iframe';
+      gasIframe.style.display = 'none';
+      document.body.appendChild(gasIframe);
+    }
+    gasIframe.onload = function() {
       showThanks();
     };
-    xhr.send();
-    // フォールバック：8秒後に必ずサンクスページへ
-    setTimeout(showThanks, 8000);
+    gasIframe.src = GAS_URL + '?' + params.toString();
+    // フォールバック：10秒後に必ずサンクスページへ
+    setTimeout(showThanks, 10000);
   });
 
   function showThanks() {
