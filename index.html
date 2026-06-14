@@ -1110,8 +1110,7 @@
     submitBtn.disabled = true;
     submitBtn.textContent = '送信中…';
 
-    // フィールドの値をJSONで収集
-    // FormDataで送信（no-corsでも確実に届く）
+    // FormDataで送信（no-corsで唯一確実に届く方法）
     const fd = new FormData();
     fd.append('name',      document.getElementById('field-name')?.value       || '');
     fd.append('childName', document.getElementById('field-child-name')?.value || '');
