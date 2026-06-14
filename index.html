@@ -1124,11 +1124,22 @@
     params.append('community', document.getElementById('field-community')?.value  || '');
     params.append('message',   document.getElementById('field-message')?.value    || '');
 
+    // GASにGETリクエスト送信、完了を待ってからサンクスページへ
+    let thanksShown = false;
+    function goThanks() {
+      if (!thanksShown) {
+        thanksShown = true;
+        showThanks();
+      }
+    }
+
     const img = new Image();
+    img.onload = () => { setTimeout(goThanks, 500); };
+    img.onerror = () => { setTimeout(goThanks, 500); };
     img.src = GAS_URL + '?' + params.toString();
-    img.onload = img.onerror = () => showThanks();
-    // フォールバック：3秒後に必ずサンクスページへ
-    setTimeout(showThanks, 3000);
+
+    // フォールバック：10秒後に必ずサンクスページへ
+    setTimeout(goThanks, 10000);
   });
 
   function showThanks() {
