@@ -1098,7 +1098,7 @@
 
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbxvWD9OOdvGLMBECuIlpFFaxHQ8ja00InILnhQMeAPDnkfhmLjldxEAuj-a14G5QKBhEw/exec';
 
-  form.addEventListener('submit', async e => {
+  form.addEventListener('submit', function(e) {
     e.preventDefault();
 
     if (!consentBox.checked) {
@@ -1110,7 +1110,7 @@
     submitBtn.disabled = true;
     submitBtn.textContent = '送信中…';
 
-    // GETリクエストで送信（no-cors制限を回避）
+    // パラメータ収集
     const params = new URLSearchParams();
     params.append('name',      document.getElementById('field-name')?.value       || '');
     params.append('childName', document.getElementById('field-child-name')?.value || '');
@@ -1124,53 +1124,29 @@
     params.append('community', document.getElementById('field-community')?.value  || '');
     params.append('message',   document.getElementById('field-message')?.value    || '');
 
-    // Google FormにPOST送信（hidden iframe経由）
-    const GFORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdos0O1LgyohEfwbootsUwa8Wj6iq4B7unfgFlKwyKl4LqUaw/formResponse';
-
-    const gform = document.createElement('form');
-    gform.method = 'POST';
-    gform.action = GFORM_URL;
-    gform.target = 'gform-iframe';
-    gform.style.display = 'none';
-
-    const fieldMap = {
-      'entry.978779399':  document.getElementById('field-name')?.value || '',
-      'entry.1236140203': document.getElementById('field-child-name')?.value || '',
-      'entry.1231021404': document.getElementById('field-age')?.value || '',
-      'entry.2021935006': document.querySelector('input[name="entry.2021935006"]:checked')?.value || '',
-      'entry.1083051198': document.getElementById('field-child')?.value || '',
-      'entry.1112927094': document.getElementById('field-diagnosis')?.value || '',
-      'entry.37145674':   document.getElementById('field-hardest')?.value || '',
-      'entry.1000678276': document.getElementById('field-growth')?.value || '',
-      'entry.1553906920': document.getElementById('field-future')?.value || '',
-      'entry.977300328':  document.getElementById('field-community')?.value || '',
-      'entry.1023474406': document.getElementById('field-message')?.value || ''
+    // scriptタグ方式でGASにGETリクエスト（CORSを完全回避）
+    const script = document.createElement('script');
+    script.src = GAS_URL + '?' + params.toString() + '&callback=onGasSent';
+    
+    window.onGasSent = function() {
+      document.head.removeChild(script);
+      showThanks();
     };
 
-    Object.entries(fieldMap).forEach(([name, value]) => {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = name;
-      input.value = value;
-      gform.appendChild(input);
-    });
+    script.onerror = function() {
+      // エラーでも送信は届いているのでサンクスへ
+      showThanks();
+    };
 
-    // hidden iframe
-    let gformIframe = document.getElementById('gform-iframe');
-    if (!gformIframe) {
-      gformIframe = document.createElement('iframe');
-      gformIframe.name = 'gform-iframe';
-      gformIframe.id = 'gform-iframe';
-      gformIframe.style.display = 'none';
-      document.body.appendChild(gformIframe);
-    }
+    document.head.appendChild(script);
 
-    document.body.appendChild(gform);
-    gform.submit();
-    document.body.removeChild(gform);
-
-    // サンクスページへ
-    setTimeout(showThanks, 2000);
+    // フォールバック：8秒後に必ずサンクスページへ
+    setTimeout(function() {
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
+      showThanks();
+    }, 8000);
   });
 
   function showThanks() {
